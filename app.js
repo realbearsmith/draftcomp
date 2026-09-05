@@ -52,7 +52,9 @@ var GLOSSARY = [
   {t:"Bye week", ab:"bye",
    d:"The week this player's NFL team does not play, so he scores nothing. Not a reason " +
      "to avoid anyone, but stacking your whole starting lineup on one bye week is " +
-     "avoidable pain."},
+     "avoidable pain. On the board the bye turns <em>amber when you already have two " +
+     "starters off that week</em> and red at three or more, with the running count next " +
+     "to it — drafting him would make it one worse."},
   {t:"FLEX",
    d:"A lineup slot you can fill with a running back, wide receiver or tight end — " +
      "whichever spare is projected highest that week."},
@@ -240,9 +242,20 @@ function takeButtons(k){
     '</div>';
 }
 
+var BYE_LOAD = {};          // refreshed by viewBoard on every render
+
 function playerRow(p){
   var s = sc(p), bits = [esc(p.team || "FA")];
-  if (p.bye) bits.push("bye " + n0(p.bye));
+  if (p.bye){
+    // how many starters am I ALREADY carrying on this bye? Adding this player
+    // would make it one more, so 2 existing = the amber threshold of 3.
+    var load = BYE_LOAD[p.bye] || 0;
+    var cls = load >= 3 ? " bad" : load === 2 ? " warn" : "";
+    bits.push('<span class="by' + cls + '"' +
+      (load >= 2 ? ' title="' + load + ' of your starters are already off in week ' +
+                   n0(p.bye) + '"' : "") +
+      '>bye ' + n0(p.bye) + (load >= 2 ? " ·" + load : "") + '</span>');
+  }
   if (s.tier) bits.push("tier " + s.tier);
   if (s.proj != null) bits.push("<em>" + n0(s.proj) + "</em> proj");
   if (s.vor != null)  bits.push("<em>" + n0(s.vor) + "</em> VOR");
@@ -303,6 +316,7 @@ function detailBlock(p){
 }
 
 function viewBoard(){
+  BYE_LOAD = starterByeCounts();
   var list = available();
   var sel = S.filters;
   if (sel.indexOf("ALL") < 0)
@@ -376,12 +390,13 @@ function viewPick(){
       '<a href="#" data-gloss="1">What do these terms mean?</a></p></div>';
 }
 
-function viewTeam(){
-  var roster = myRoster().filter(Boolean);
+/* Slot a roster into the lineup: first nine entries are the starting spots,
+   anything left over is bench. Shared by My Team and by the board's bye
+   colouring so the two views always agree on what a conflict is. */
+function lineupSlots(roster){
   var order = {QB:0,RB:1,WR:2,TE:3,K:4,DST:5};
   var pool = roster.slice().sort(function(a,b){
     return (order[a.pos]-order[b.pos]) || (rankOf(a)-rankOf(b)); });
-  var total = roster.reduce(function(t,p){ return t + (sc(p).proj || 0); }, 0);
   function take(pos){
     for (var i = 0; i < pool.length; i++)
       if (pool[i].pos === pos) return pool.splice(i,1)[0];
@@ -394,6 +409,22 @@ function viewTeam(){
   slots.push(["K", take("K")]);
   slots.push(["DST", take("DST")]);
   pool.forEach(function(p, i){ slots.push(["BENCH " + (i+1), p]); });
+  return slots;
+}
+
+/* {week: number of my STARTERS already off that week} */
+function starterByeCounts(){
+  var out = {};
+  lineupSlots(myRoster().filter(Boolean)).slice(0, 9).forEach(function(x){
+    if (x[1] && x[1].bye) out[x[1].bye] = (out[x[1].bye] || 0) + 1;
+  });
+  return out;
+}
+
+function viewTeam(){
+  var roster = myRoster().filter(Boolean);
+  var total = roster.reduce(function(t,p){ return t + (sc(p).proj || 0); }, 0);
+  var slots = lineupSlots(roster);
   var starters = slots.slice(0,9).reduce(function(t,x){
     return t + (x[1] ? (sc(x[1]).proj || 0) : 0); }, 0);
   // bye-week load across the nine starting slots
