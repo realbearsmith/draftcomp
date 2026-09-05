@@ -3,12 +3,12 @@
 into one synthesized dataset (data.js) for the draft app."""
 import re, json, unicodedata, statistics as st
 
-SRC = "/tmp/ff"
-F_FFTB_PPR = f"{SRC}/mcp-workspace-web_fetch-1787383832677.txt"
-F_FFTB_STD = f"{SRC}/mcp-workspace-web_fetch-1787383990068.txt"
-F_CBS_PPR  = f"{SRC}/mcp-workspace-web_fetch-1787384464222.txt"
-F_CBS_STD  = f"{SRC}/mcp-workspace-web_fetch-1787384481673.txt"
-F_FFC_PPR  = f"{SRC}/mcp-workspace-web_fetch-1787384107973.txt"
+SRC = "/tmp/ff2"
+F_FFTB_PPR = f"{SRC}/fftb_ppr.txt"
+F_FFTB_STD = f"{SRC}/fftb_std.txt"
+F_CBS_PPR  = f"{SRC}/cbs_ppr.txt"
+F_CBS_STD  = f"{SRC}/cbs_std.txt"
+F_FFC_PPR  = f"{SRC}/ffc_ppr.txt"
 F_FFC_STD  = f"{SRC}/ffc_std.txt"
 
 TEAM_FIX = {"LVR": "LV", "JAC": "JAX", "WSH": "WAS"}
@@ -282,7 +282,7 @@ out.sort(key=lambda p: p["src"]["PPR"].get("consensus") or 999)
 
 meta = dict(
     season=2026,
-    generated="2026-08-22",
+    generated="2026-09-05",
     league=dict(teams=12, rounds=16, snake=True),
     sources=[
         dict(id="fftoolbox", label="Fulltime Fantasy (FFToolbox)",
@@ -296,12 +296,12 @@ meta = dict(
         dict(id="ffc", label="Fantasy Football Calculator",
              kind="Live 12-team ADP",
              url="https://fantasyfootballcalculator.com/adp/ppr/12-team/all",
-             note="Market ADP from 7,112 12-team mock drafts, Aug 14-21 2026."),
+             note="Market ADP from 7,430 12-team mock drafts, Aug 29 - Sep 5 2026."),
     ],
 )
 print("players:", len(out))
 payload = json.dumps(dict(meta=meta, players=out), separators=(",", ":"))
-open("/tmp/ff/data.js", "w").write("window.FF_DATA=" + payload + ";")
+open("/tmp/ff2/data.js", "w").write("window.FF_DATA=" + payload + ";")
 print("data.js bytes:", len(payload))
 for p in out[:12]:
     s = p["src"]["PPR"]

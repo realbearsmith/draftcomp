@@ -54,8 +54,14 @@ nav.tabs button{flex:1;background:var(--panel);border:1px solid var(--line);colo
 nav.tabs button[aria-pressed=true]{background:var(--panel2);color:var(--txt);border-color:var(--accent)}
 .chips{display:flex;gap:6px;overflow-x:auto;padding:8px 0 4px;-webkit-overflow-scrolling:touch}
 .chips button{flex:0 0 auto;background:var(--panel);border:1px solid var(--line);color:var(--dim);
-  border-radius:999px;padding:6px 12px;font-size:12px;font-weight:700;font-family:inherit;min-height:32px}
+  border-radius:14px;padding:5px 12px;font-family:inherit;min-height:42px;
+  display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1px;line-height:1.15}
 .chips button[aria-pressed=true]{background:var(--txt);color:#0b1220;border-color:transparent}
+.chips .cf{font-size:12px;font-weight:800;letter-spacing:.3px}
+.chips .cn{font-size:9px;font-weight:700;letter-spacing:.2px;opacity:.7;white-space:nowrap}
+.chips .cn.short{color:var(--warn);opacity:1}
+.chips button[aria-pressed=true] .cn{opacity:.65}
+.chips button[aria-pressed=true] .cn.short{color:#8a5a00;opacity:1}
 .legend{font-size:11px;color:var(--dim);padding:2px 2px 6px;display:flex;gap:6px;align-items:center;
   flex-wrap:wrap}
 .legend b{color:#c9bcff;font-weight:700}
@@ -108,6 +114,7 @@ nav.tabs button[aria-pressed=true]{background:var(--panel2);color:var(--txt);bor
 .nflag{font-size:9px;font-weight:800;letter-spacing:.4px;text-transform:uppercase;
   background:rgba(255,107,107,.18);color:var(--bad);border-radius:5px;padding:2px 6px}
 .nflag.amber{background:rgba(255,176,32,.18);color:var(--warn)}
+.nflag.amber{background:rgba(255,176,32,.18);color:var(--warn)}
 .nwhen{font-size:10px;color:var(--dim);margin-left:auto}
 .nhead3,.nhead{font-size:12.5px;font-weight:650;line-height:1.4}
 .nhead a{color:var(--txt);text-decoration:none;border-bottom:1px solid var(--line)}
@@ -119,12 +126,34 @@ nav.tabs button[aria-pressed=true]{background:var(--panel2);color:var(--txt);bor
 .nlink{font-size:10px;font-weight:700;border:1px solid var(--line);border-radius:6px;
   padding:4px 8px;color:var(--dim);text-decoration:none}
 .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:8px;padding:10px}
-.slot{background:var(--panel2);border:1px solid var(--line);border-radius:10px;padding:8px 10px}
+.slot{background:var(--panel2);border:1px solid var(--line);border-left:4px solid var(--line);
+  border-radius:10px;padding:8px 10px}
 .slot .s{font-size:10px;color:var(--dim);text-transform:uppercase;letter-spacing:.6px}
-.slot .p{font-size:13px;font-weight:650;margin-top:2px}
+.slot .p{font-size:13px;font-weight:650;margin-top:2px;white-space:nowrap;overflow:hidden;
+  text-overflow:ellipsis}
+.slot .mt{font-size:10.5px;color:var(--dim);margin-top:2px;font-variant-numeric:tabular-nums}
 .slot.open .p{color:var(--dim);font-weight:400;font-style:italic}
+.slot .mp{font-weight:800;letter-spacing:.3px;margin-right:5px}
+.slot.clash{background:rgba(255,176,32,.07);
+  box-shadow:inset 0 0 0 1px rgba(255,176,32,.45)}
+.slot.clash .mt{color:var(--warn)}
+/* same palette as the position badges on the board */
+.slot.p-QB{border-left-color:var(--qb)}
+.slot.p-RB{border-left-color:var(--rb)}
+.slot.p-WR{border-left-color:var(--wr)}
+.slot.p-TE{border-left-color:var(--te)}
+.slot.p-K{border-left-color:var(--k)}
+.slot.p-DST{border-left-color:var(--dst)}
+.slot.p-QB .s,.slot.p-QB .mp{color:var(--qb)}
+.slot.p-RB .s,.slot.p-RB .mp{color:var(--rb)}
+.slot.p-WR .s,.slot.p-WR .mp{color:var(--wr)}
+.slot.p-TE .s,.slot.p-TE .mp{color:var(--te)}
+.slot.p-K  .s,.slot.p-K  .mp{color:var(--k)}
+.slot.p-DST .s,.slot.p-DST .mp{color:var(--dst)}
 .pillrow{display:flex;flex-wrap:wrap;gap:6px;padding:0 12px 12px}
 .pill{font-size:11px;background:var(--panel2);border:1px solid var(--line);border-radius:999px;padding:4px 9px}
+.pill.warn{border-color:rgba(255,176,32,.5);color:var(--warn)}
+.pill.bad{border-color:rgba(255,107,107,.5);color:var(--bad)}
 p.note{font-size:12px;color:var(--dim);padding:0 12px 12px;margin:0}
 p.note a{color:var(--accent)}
 .srcblk{padding:10px 12px;border-bottom:1px solid var(--line)}

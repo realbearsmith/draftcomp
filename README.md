@@ -56,9 +56,25 @@ If ESPN is unreachable the panel says so and offers Google News and ESPN search 
 rest of the board is unaffected and keeps working offline. Team defenses have no
 player-level news, so they link to that team's injury report instead.
 
+The position chips above the board are multi-select: tap **RB** and **TE** to see only
+those two, interleaved by consensus rank rather than grouped, which is how you actually
+compare a mid-round back against a tight end. Tap a chip again to drop it, or **ALL** to
+clear everything; deselecting the last chip falls back to ALL on its own. Under each chip
+is how many of that position you have already drafted against how many you need to start —
+`RB 1 of 2` — and the count turns amber while a starting slot is still open, so the gaps in
+your lineup are visible without leaving the board.
+
 **My Pick** is the tab to open when it's your turn: it ranks the best available players by
 value over replacement, weighted by the holes left in your lineup and by who is about to
-disappear. **My Team** shows your lineup slotted out with projected points. **Sources**
+disappear. **My Team** shows your lineup slotted out, each card edged and labelled in the same colour
+its position uses on the board — green for backs, blue for receivers, and so on — so you
+can glance between the two views without reading. FLEX and bench cards take the colour of
+the player's real position rather than the slot's, and carry the position abbreviation next
+to the team. Each player shows team, bye week and projected points, followed by a bye-week strip: one pill per week showing how many of your
+nine starters are off that week. Two starters sharing a bye is normal; at three the pill
+turns amber, at four it turns red, and the affected lineup slots are highlighted so you can
+see which players collide. Bench players are deliberately left out of that count — they are
+who you stream *with*, not part of the problem. **Sources**
 documents where every number came from.
 
 ## What's in the synthesis
@@ -67,7 +83,7 @@ documents where every number came from.
 | --- | --- |
 | Fulltime Fantasy (FFToolbox) | Expert top-200 board, season point projections, auction values |
 | CBS Sports | Average draft position across CBS-hosted leagues |
-| Fantasy Football Calculator | Market ADP from 7,112 12-team mock drafts, Aug 14–21 2026 |
+| Fantasy Football Calculator | Market ADP from 7,430 12-team mock drafts, Aug 29 – Sep 5 2026 |
 
 Each source is read separately for PPR and non-PPR. Ranks are averaged, with a penalty
 rank charged when a source omits a player entirely, then re-sorted into the consensus
@@ -87,10 +103,14 @@ standard deviation and asks how often he'd still be there at your next pick.
 
 ## Refreshing the data
 
-`data.js` is a snapshot from 22 August 2026 and does not update itself. `build_data.py`
+`data.js` is a snapshot from 5 September 2026 and does not update itself. `build_data.py`
 is the script that produced it: it parses saved copies of the three source pages and
-writes `data.js`. To refresh, re-download those pages, point the `F_*` paths at them and
-run `python3 build_data.py`. Everything else in the app reads from that one file.
+writes `data.js`. To refresh, save the six pages listed at the top of the script as
+`fftb_ppr.txt`, `fftb_std.txt`, `cbs_ppr.txt`, `cbs_std.txt`, `ffc_ppr.txt` and
+`ffc_std.txt`, point `SRC` at the folder holding them, and run `python3 build_data.py`.
+Bump `generated` and the Fantasy Football Calculator note while you are in there — the
+app reads both straight out of `data.js` and shows them on the Sources tab. Everything
+else in the app reads from that one file.
 
 The repo has four files and no build step:
 
@@ -106,6 +126,8 @@ rest of the board working — useful if ESPN ever changes those endpoints.
 ## Caveats
 
 The board assumes a standard 1QB / 2RB / 2WR / 1TE / 1FLEX / K / DST lineup in a 12-team
-snake league. Injuries and depth-chart news after 22 August 2026 are not reflected.
+snake league. Injuries and depth-chart news after 5 September 2026 are not reflected.
+Week 1 kicks off 6 September, so treat this as a draft-eve board rather than an in-season
+one — once games are played the news panel stays current but these rankings will not.
 Consensus rankings are a starting point, not a verdict — the *split opinion* and tier
 flags exist precisely because the aggregate hides real disagreement.

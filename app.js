@@ -75,12 +75,15 @@ var S = {
   slot: 6,
   rounds: 16,
   picks: [],          // [{key}] in draft order
-  filter: "ALL",
+  filters: ["ALL"],   // multi-select position filter
   q: "",
   tab: "board",
   open: null
 };
 try { Object.assign(S, JSON.parse(localStorage.getItem(LS) || "{}")); } catch (e) {}
+if (typeof S.filter === "string"){ S.filters = [S.filter]; delete S.filter; }
+if (!Object.prototype.toString.call(S.filters).match(/Array/) || !S.filters.length)
+  S.filters = ["ALL"];
 function save(){
   try {
     localStorage.setItem(LS, JSON.stringify({
@@ -301,15 +304,29 @@ function detailBlock(p){
 
 function viewBoard(){
   var list = available();
-  if (S.filter !== "ALL") list = list.filter(function(p){ return p.pos === S.filter; });
+  var sel = S.filters;
+  if (sel.indexOf("ALL") < 0)
+    list = list.filter(function(p){ return sel.indexOf(p.pos) >= 0; });
   if (S.q){
     var q = S.q.toLowerCase();
     list = list.filter(function(p){
       return (p.name + " " + p.team + " " + p.pos).toLowerCase().indexOf(q) >= 0; });
   }
+  // each chip carries how many of that position you have already drafted
+  var mine = myRoster().filter(Boolean);
+  var have = posCount(mine);
   var chips = ["ALL","QB","RB","WR","TE","K","DST"].map(function(f){
-    return '<button data-filter="' + f + '" aria-pressed="' + (S.filter === f) + '">' +
-      f + '</button>';
+    var on = sel.indexOf(f) >= 0, sub, cls = "";
+    if (f === "ALL"){
+      sub = mine.length + " drafted";
+    } else {
+      var n = have[f] || 0, need = STARTERS[f] || 0;
+      sub = n + " of " + need;
+      if (n < need) cls = " short";
+    }
+    return '<button data-filter="' + f + '" aria-pressed="' + on + '">' +
+      '<span class="cf">' + f + '</span>' +
+      '<span class="cn' + cls + '">' + sub + '</span></button>';
   }).join("");
   var body = list.length
     ? list.slice(0, 220).map(playerRow).join("")
@@ -379,14 +396,42 @@ function viewTeam(){
   pool.forEach(function(p, i){ slots.push(["BENCH " + (i+1), p]); });
   var starters = slots.slice(0,9).reduce(function(t,x){
     return t + (x[1] ? (sc(x[1]).proj || 0) : 0); }, 0);
-  var cells = slots.map(function(x){
-    return '<div class="slot' + (x[1] ? "" : " open") + '">' +
-      '<div class="s">' + x[0] + '</div><div class="p">' +
-      (x[1] ? esc(displayName(x[1])) +
-        " <span style='color:var(--dim);font-weight:400'>" +
-        (x[1].team || "") + " · " + n0(sc(x[1]).proj) + "</span>" : "open") +
-      '</div></div>';
+  // bye-week load across the nine starting slots
+  var byes = {};
+  slots.slice(0, 9).forEach(function(x){
+    if (x[1] && x[1].bye) (byes[x[1].bye] = byes[x[1].bye] || []).push(x[1]);
+  });
+  var weeks = Object.keys(byes).map(Number).sort(function(a,b){ return a-b; });
+  function byeLoad(p){ return p && p.bye ? (byes[p.bye] || []).length : 0; }
+
+  var cells = slots.map(function(x, i){
+    var p = x[1], starter = i < 9;
+    var clash = starter && byeLoad(p) >= 3;
+    // p-<POS> paints the slot in the same colour the board uses for that position
+    return '<div class="slot' + (p ? " p-" + p.pos : " open") +
+        (clash ? " clash" : "") + '">' +
+      '<div class="s">' + x[0] + '</div>' +
+      '<div class="p">' + (p ? esc(displayName(p)) : "open") + '</div>' +
+      (p ? '<div class="mt"><span class="mp">' + p.pos + '</span>' +
+           esc(p.team || "FA") +
+           ' · bye ' + (p.bye ? n0(p.bye) : "–") +
+           ' · ' + n0(sc(p).proj) + ' pts</div>' : "") +
+      '</div>';
   }).join("");
+
+  var byePills = weeks.map(function(w){
+    var n = byes[w].length;
+    var cls = n >= 4 ? " bad" : n >= 3 ? " warn" : "";
+    return '<span class="pill' + cls + '">Wk ' + w + ' · ' + n +
+      ' starter' + (n > 1 ? "s" : "") + ' out</span>';
+  }).join("");
+  var worst = weeks.reduce(function(m, w){ return Math.max(m, byes[w].length); }, 0);
+  var byeNote = !weeks.length
+    ? "Draft someone and their bye week shows up here."
+    : worst >= 3
+      ? "Three or more starters share a bye — you will be streaming that week, so " +
+        "weigh bye weeks on your next few picks."
+      : "No bye week costs you more than two starters. That is comfortably streamable.";
   var log = S.picks.map(function(x, i){
     var p = byKey[x.key];
     return '<div class="row"><div class="rk">' + pickLabel(i+1) + '</div>' +
@@ -400,6 +445,9 @@ function viewTeam(){
     '<div class="pillrow"><span class="pill">Starters proj: <b>' + n0(starters) +
       '</b></span><span class="pill">Full roster proj: <b>' + n0(total) + '</b></span>' +
       '<span class="pill">' + S.scoring + '</span></div></div>' +
+    '<div class="card"><h2>Bye weeks · starters</h2>' +
+      (byePills ? '<div class="pillrow">' + byePills + '</div>' : "") +
+      '<p class="note">' + byeNote + '</p></div>' +
     '<div class="card"><h2>Draft log</h2>' +
       (log || '<div class="empty">No picks yet.</div>') + '</div>';
 }
@@ -513,7 +561,19 @@ document.addEventListener("click", function(e){
     return;
   }
   var f = e.target.closest("[data-filter]");
-  if (f){ S.filter = f.dataset.filter; render(); return; }
+  if (f){
+    var v = f.dataset.filter;
+    if (v === "ALL"){
+      S.filters = ["ALL"];
+    } else {
+      var cur = S.filters.filter(function(x){ return x !== "ALL"; });
+      var at = cur.indexOf(v);
+      if (at >= 0) cur.splice(at, 1); else cur.push(v);
+      S.filters = cur.length ? cur : ["ALL"];   // deselecting the last one resets
+    }
+    render();
+    return;
+  }
   var row = e.target.closest(".row[data-k]");
   if (row){ S.open = S.open === row.dataset.k ? null : row.dataset.k; render(); }
 });
