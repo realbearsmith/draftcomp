@@ -2,21 +2,7 @@
 
 A phone-friendly draft board that blends rankings, projections and ADP from three
 independent sources into one consensus, lets you set your draft slot, and toggles between
-PPR and non-PPR scoring. It is a single static page, so GitHub Pages serves it as-is —
-no build step, no server, no account.
-
-## Put it on GitHub Pages
-
-1. Create a new repository on github.com (public, no README).
-2. Upload `index.html`, `app.js`, `news.js`, `data.js` and this `README.md` to the root of
-   that repo — the web uploader at **Add file → Upload files** is enough, no git required.
-   They must all sit in the same folder; `index.html` loads the others by relative path.
-3. In the repo go to **Settings → Pages**, set **Source** to *Deploy from a branch*,
-   pick branch `main` and folder `/ (root)`, then **Save**.
-4. Wait about a minute. Your board is at
-   `https://<your-username>.github.io/<repo-name>/`.
-5. Open that on your phone and use **Share → Add to Home Screen**. It then behaves like
-   an app, and your draft progress is saved on the device between openings.
+PPR and non-PPR scoring. It is a single static page, so GitHub Pages serves it as-is
 
 ## Using it during the draft
 
